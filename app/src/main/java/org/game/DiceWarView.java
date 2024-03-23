@@ -207,7 +207,7 @@ public class DiceWarView extends SurfaceView implements Runnable {
                     // back
                     pause();
                     GameResources.soundFail.start();
-                    ((MainActivity) getContext()).setOpponentsViewView();
+                    ((MainActivity) getContext()).setOpponentsView();
                 }
                 return false;
             }

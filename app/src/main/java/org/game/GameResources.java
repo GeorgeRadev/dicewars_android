@@ -68,7 +68,7 @@ public class GameResources {
         game = new Game();
 
         lastClickedArea = 0;
-        opponentsCount = 7;
+        opponentsCount = -2;
 
         // landscape
         viewWidth = displayMetrics.widthPixels;

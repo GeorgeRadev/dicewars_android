@@ -2,6 +2,7 @@ package org.game;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,6 +11,7 @@ public class OpponentsView extends View {
 
     final MainActivity main;
     final Rect[] opponentRects;
+    final Paint selectedPaint;
 
     public OpponentsView(Context context) {
         super(context);
@@ -21,6 +23,9 @@ public class OpponentsView extends View {
         int spacingHalf = spacing >> 1;
         int left = halfScreenW - 6 * spacing + spacingHalf;
         int top = halfScreenH;
+
+        selectedPaint = new Paint();
+        selectedPaint.setColor(GameResources.playerColor[0]);
 
         opponentRects = new Rect[8];
         for (int i = 0; i < 8; i++) {
@@ -35,7 +40,6 @@ public class OpponentsView extends View {
             r.bottom = r.top + 2 * spacing;
         }
     }
-
 
     private static final float[][] dots = {
             //1
@@ -63,7 +67,11 @@ public class OpponentsView extends View {
         float roundness = GameResources.density * 4;
         for (int i = 0; i < 8; i++) {
             Rect r = opponentRects[i];
-            canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, GameResources.textPaint);
+            Paint paint = GameResources.textPaint;
+            if (GameResources.opponentsCount == i + 1) {
+                paint = selectedPaint;
+            }
+            canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, paint);
             int xc = (r.left + r.right) >> 1;
             int w = (r.right - r.left) * 5 / 10;
             int rad = w / 6;
@@ -93,12 +101,11 @@ public class OpponentsView extends View {
             }
         }
         if (selection >= 0) {
+            invalidate();
             GameResources.opponentsCount = 1 + selection;
             GameResources.soundMyTurn.start();
             main.setDiceView();
         }
         return false;
     }
-
-
 }

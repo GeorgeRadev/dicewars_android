@@ -10,10 +10,12 @@ import android.view.WindowManager;
 
 import org.game.dicewars.R;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Runnable {
     View currentView;
     OpponentsView opponentsView;
     DiceWarView diceWarView;
+
+    Thread createResources;
 
     MainActivity context;
 
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     public MainActivity() {
         context = this;
         init = false;
+        createResources = null;
     }
 
     @Override
@@ -35,39 +38,20 @@ public class MainActivity extends AppCompatActivity {
 
         if (!init && savedInstanceState != null) {
             init = true;
-            CreateResourcesTask createResourcesTask = new CreateResourcesTask();
-            createResourcesTask.start();
+            createResources = new Thread(this);
+            createResources.start();
         }
     }
 
-    class CreateResourcesTask extends Thread {
-        @Override
-        public void run() {
-            // initialize game resources
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-
-            GameResources.init(displayMetrics);
-
-            GameResources.soundButton = MediaPlayer.create(context, R.raw.button);
-            GameResources.soundFail = MediaPlayer.create(context, R.raw.fail);
-            GameResources.soundMyTurn = MediaPlayer.create(context, R.raw.myturn);
-            GameResources.soundOver = MediaPlayer.create(context, R.raw.over);
-            GameResources.soundSuccess = MediaPlayer.create(context, R.raw.success);
-
-            opponentsView = new OpponentsView(context);
-            diceWarView = new DiceWarView(context);
-            runOnUiThread(() -> setOpponentsViewView());
-        }
-    }
 
     void setDiceView() {
         diceWarView.reset();
         setContentView(currentView = diceWarView);
     }
 
-    void setOpponentsViewView() {
+    void setOpponentsView() {
         setContentView(currentView = opponentsView);
+        opponentsView.invalidate();
     }
 
     @Override
@@ -84,5 +68,27 @@ public class MainActivity extends AppCompatActivity {
         if (currentView != null && currentView == diceWarView) {
             ((DiceWarView) currentView).resume();
         }
+    }
+
+    @Override
+    public void run() {
+        // initialize game resources
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        GameResources.init(displayMetrics);
+
+        GameResources.soundButton = MediaPlayer.create(context, R.raw.button);
+        GameResources.soundFail = MediaPlayer.create(context, R.raw.fail);
+        GameResources.soundMyTurn = MediaPlayer.create(context, R.raw.myturn);
+        GameResources.soundOver = MediaPlayer.create(context, R.raw.over);
+        GameResources.soundSuccess = MediaPlayer.create(context, R.raw.success);
+
+        opponentsView = new OpponentsView(context);
+        diceWarView = new DiceWarView(context);
+
+        init = true;
+        createResources = null;
+        runOnUiThread(() -> setOpponentsView());
     }
 }
