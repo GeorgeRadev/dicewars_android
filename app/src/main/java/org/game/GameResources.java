@@ -79,10 +79,15 @@ public class GameResources {
         }
         density = displayMetrics.density;
 
+        // decide on the screen ratio
+        if (viewWidth > 2 * viewHeight) {
+            cellHeight = viewHeight / (game.YMAX + 2);
+        } else {
+            cellHeight = viewHeight / (game.YMAX + 9);
+        }
+        cellWidth = cellHeight * originalCellW / originalCellH;
 
         // draw honeycomb
-        cellHeight = viewHeight / (game.YMAX + 2);
-        cellWidth = cellHeight * originalCellW / originalCellH;
         int s = 3 * viewWidth / viewHeight;
         hexagonX = new int[]{cellWidth / 2, cellWidth, cellWidth, cellWidth / 2, 0, 0, cellWidth / 2};
         hexagonY = new int[]{-s, s, cellHeight - s, cellHeight + s, cellHeight - s, s, -s};

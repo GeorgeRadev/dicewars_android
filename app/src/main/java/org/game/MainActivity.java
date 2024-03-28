@@ -72,6 +72,12 @@ public class MainActivity extends AppCompatActivity implements Runnable {
 
     @Override
     public void run() {
+        try {
+            // give a little time to render
+            Thread.sleep(600);
+        } catch (InterruptedException e) {
+            // ok
+        }
         // initialize game resources
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
