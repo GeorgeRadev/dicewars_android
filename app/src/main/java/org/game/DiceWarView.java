@@ -29,6 +29,7 @@ public class DiceWarView extends SurfaceView implements Runnable {
     final Rect[] countRects = new Rect[8];
     final Rect[] battleRects = new Rect[2];
     final Paint countPaint = new Paint();
+    final Paint resultPaint = new Paint();
 
     private Thread thread = null;
 
@@ -72,6 +73,8 @@ public class DiceWarView extends SurfaceView implements Runnable {
                 battleRects[i] = r;
             }
         }
+
+        resultPaint.set(GameResources.textPaint);
 
         setBackgroundColor(Color.TRANSPARENT);
         setZOrderOnTop(true);
@@ -118,6 +121,15 @@ public class DiceWarView extends SurfaceView implements Runnable {
             canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, GameResources.textPaint);
             int xc = (r.left + r.right) >> 1;
             canvas.drawText(hasPlayButton ? "Play" : "Ready",
+                    xc, r.top + (GameResources.whiteTextPaint.getTextSize()),
+                    GameResources.whiteTextPaint);
+        } else if (GameResources.gameState == GameState.WIN || GameResources.gameState == GameState.GAME_OVER) {
+            boolean won = GameResources.gameState == GameState.WIN;
+            Rect r = topButtonRect;
+            resultPaint.setColor(won ? Color.rgb(0x00, 0x99, 0x00) : Color.rgb(0xcc, 0x00, 0x00));
+            canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, resultPaint);
+            int xc = (r.left + r.right) >> 1;
+            canvas.drawText(won ? "Won" : "Lost",
                     xc, r.top + (GameResources.whiteTextPaint.getTextSize()),
                     GameResources.whiteTextPaint);
         }
