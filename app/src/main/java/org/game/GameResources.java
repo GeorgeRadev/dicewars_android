@@ -381,20 +381,22 @@ public class GameResources {
         // game.set_his(game.attackAreaFrom, game.attackAreaTo, defeat);
 
         if (game.playersData[game.userPlayerIx].areaTotalCount == 0) {
+            // LOST - player hass no areas
             return Boolean.FALSE;
-        } else {
-            int c = 0;
-            for (int i = 0; i < game.maxPlayerCount; i++) {
-                if (game.playersData[i].areaTotalCount > 0) {
-                    c++;
-                }
-            }
-            if (c == 1) {
-                return Boolean.FALSE;
-            } else {
-                return null;
+        }
+        // count opponents
+        int otherAreasCount = 0;
+        for (int i = 0; i < game.maxPlayerCount; i++) {
+            if (game.userPlayerIx != i) {
+                otherAreasCount += game.playersData[i].areaTotalCount;
             }
         }
+        if (otherAreasCount == 0) {
+            // WIN - no opponents left
+            return Boolean.TRUE;
+        }
+        // continue the game
+        return null;
     }
 
     static void start_supply() {
