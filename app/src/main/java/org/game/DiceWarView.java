@@ -135,9 +135,7 @@ public class DiceWarView extends SurfaceView implements Runnable {
             Rect r = bottomButtonRect;
             canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, GameResources.textPaint);
             int xc = (r.left + r.right) >> 1;
-            boolean isNext = GameResources.gameState == GameState.WIN ||
-                    GameResources.gameState == GameState.GAME_OVER ||
-                    GameResources.gameState == GameState.NOP;
+            boolean isNext = GameResources.gameState == GameState.NOP;
             canvas.drawText(isNext ? "Next" : "Back",
                     xc, r.top + (GameResources.whiteTextPaint.getTextSize()), GameResources.whiteTextPaint);
         }
@@ -203,8 +201,7 @@ public class DiceWarView extends SurfaceView implements Runnable {
         {// bottom button click
             Rect r = bottomButtonRect;
             if (r.left < x && x < r.right && r.top < y && y < r.bottom) {
-
-                if (gameEnded || GameResources.gameState == GameState.NOP) {
+                if (GameResources.gameState == GameState.NOP) {
                     // next map
                     GameResources.newGame();
                     GameResources.redrawFullMap();
@@ -225,14 +222,7 @@ public class DiceWarView extends SurfaceView implements Runnable {
             }
         }
 
-        if (hasTopButton) {
-            if (gameEnded) {
-                // back
-                pause();
-                GameResources.soundFail.start();
-                ((MainActivity) getContext()).setOpponentsView();
-                return false;
-            }
+        if (hasTopButton && !gameEnded) {
             Rect r = topButtonRect;
             if (r.left < x && x < r.right && r.top < y && y < r.bottom) {
                 if (GameResources.gameState == GameState.NOP) {
@@ -338,15 +328,13 @@ public class DiceWarView extends SurfaceView implements Runnable {
                         repaint();
                         Thread.sleep(100);
                         Boolean outcome = GameResources.after_battle();
+                        GameResources.redrawFullMap();
                         if (outcome == null) {
-                            GameResources.redrawFullMap();
-                            repaint();
                             GameResources.gameState = GameState.HUMAN_WAIT;
                         } else {
-                            GameResources.redrawFullMap();
-                            repaint();
                             GameResources.gameState = outcome ? GameState.WIN : GameState.GAME_OVER;
                         }
+                        repaint();
                     }
                     break;
 
@@ -360,15 +348,15 @@ public class DiceWarView extends SurfaceView implements Runnable {
                             repaint();
                             GameResources.start_battle();
 
-                            battleResult = true;
                             Thread.sleep(100);
+                            battleResult = true;
                             repaint();
                             Boolean outcome = GameResources.after_battle();
                             GameResources.redrawFullMap();
-                            repaint();
                             if (outcome != null) {
                                 GameResources.gameState = outcome ? GameState.WIN : GameState.GAME_OVER;
                             }
+                            repaint();
                         } else {
                             GameResources.gameState = GameState.AI_TURN_END;
                         }

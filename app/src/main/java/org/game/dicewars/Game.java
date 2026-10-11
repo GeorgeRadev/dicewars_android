@@ -52,17 +52,17 @@ public class Game {
                 // user
                 new AIDefensive(),
                 // p1
-                new AIExample(),
+                new AIDefault(),
                 // p2
-                new AIDefensive(),
+                new AIExample(),
                 // p3
                 new AIDefensive(),
                 // p4
                 new AIDefault(),
                 // p5
-                new AIDefault(),
+                new AIExample(),
                 // p6
-                new AIDefault(),
+                new AIDefensive(),
                 // p7
                 new AIDefault()};
 
