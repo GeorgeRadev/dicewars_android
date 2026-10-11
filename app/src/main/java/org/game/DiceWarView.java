@@ -13,10 +13,7 @@ import org.game.dicewars.GameState;
 
 public class DiceWarView extends SurfaceView implements Runnable {
 
-    boolean hasNextButton;
-    boolean hasBackButton;
-    boolean hasPlayButton;
-    boolean hasNextTurnButton;
+    boolean hasTopButton;
 
     boolean battleResult = false;
 
@@ -78,16 +75,15 @@ public class DiceWarView extends SurfaceView implements Runnable {
 
         setBackgroundColor(Color.TRANSPARENT);
         setZOrderOnTop(true);
+
         reset();
     }
 
     public void reset() {
-        hasNextButton = true;
-        hasPlayButton = true;
+        //select mode
+        hasTopButton = true;
 
-        hasNextTurnButton = false;
-        hasBackButton = false;
-
+        //game mode
         battleResult = false;
 
         GameResources.gameState = GameState.NOP;
@@ -116,28 +112,34 @@ public class DiceWarView extends SurfaceView implements Runnable {
         // draw buttons
         float roundness = GameResources.density * 4;
 
-        if (hasNextTurnButton || hasPlayButton) {
+        if (hasTopButton) {
             Rect r = topButtonRect;
-            canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, GameResources.textPaint);
             int xc = (r.left + r.right) >> 1;
-            canvas.drawText(hasPlayButton ? "Play" : "Ready",
-                    xc, r.top + (GameResources.whiteTextPaint.getTextSize()),
-                    GameResources.whiteTextPaint);
-        } else if (GameResources.gameState == GameState.WIN || GameResources.gameState == GameState.GAME_OVER) {
-            boolean won = GameResources.gameState == GameState.WIN;
-            Rect r = topButtonRect;
-            resultPaint.setColor(won ? Color.rgb(0x00, 0x99, 0x00) : Color.rgb(0xcc, 0x00, 0x00));
+            String text;
+            if (GameResources.gameState == GameState.WIN) {
+                text = "Won";
+                resultPaint.setColor(GameResources.wonColor);
+            } else if (GameResources.gameState == GameState.GAME_OVER) {
+                text = "Lost";
+                resultPaint.setColor(GameResources.lostColor);
+            } else {
+                text = GameResources.gameState == GameState.NOP ? "Play" : "Ready";
+                resultPaint.setColor(GameResources.textBlack);
+            }
             canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, resultPaint);
-            int xc = (r.left + r.right) >> 1;
-            canvas.drawText(won ? "Won" : "Lost",
+            canvas.drawText(text,
                     xc, r.top + (GameResources.whiteTextPaint.getTextSize()),
                     GameResources.whiteTextPaint);
         }
-        if (hasNextButton || hasBackButton) {
+        {
             Rect r = bottomButtonRect;
             canvas.drawRoundRect(r.left, r.top, r.right, r.bottom, roundness, roundness, GameResources.textPaint);
             int xc = (r.left + r.right) >> 1;
-            canvas.drawText(hasNextButton ? "Next" : "Back", xc, r.top + (GameResources.whiteTextPaint.getTextSize()), GameResources.whiteTextPaint);
+            boolean isNext = GameResources.gameState == GameState.WIN ||
+                    GameResources.gameState == GameState.GAME_OVER ||
+                    GameResources.gameState == GameState.NOP;
+            canvas.drawText(isNext ? "Next" : "Back",
+                    xc, r.top + (GameResources.whiteTextPaint.getTextSize()), GameResources.whiteTextPaint);
         }
 
         // draw area counts per player
@@ -170,17 +172,10 @@ public class DiceWarView extends SurfaceView implements Runnable {
     }
 
     public void repaint() {
-        if (GameResources.gameState == GameState.HUMAN_WAIT ||
-                GameResources.gameState == GameState.HUMAN_ATACK) {
-            hasNextTurnButton = true;
-            hasBackButton = true;
-        } else if (GameResources.gameState == GameState.WIN ||
-                GameResources.gameState == GameState.GAME_OVER ||
-                GameResources.gameState == GameState.NOP) {
-            // the game has ended
-            hasNextTurnButton = false;
-            hasNextButton = true;
-        }
+        hasTopButton = !(GameResources.gameState == GameState.AI_TURN ||
+                GameResources.gameState == GameState.AI_TURN_END ||
+                GameResources.gameState == GameState.HUMAN_TURN_END);
+
         Canvas canvas = null;
         SurfaceHolder surfaceHolder = null;
         try {
@@ -203,56 +198,60 @@ public class DiceWarView extends SurfaceView implements Runnable {
         super.onTouchEvent(event);
         int x = (int) event.getRawX();
         int y = (int) event.getRawY();
+        boolean gameEnded = GameResources.gameState == GameState.WIN || GameResources.gameState == GameState.GAME_OVER;
 
-        if (hasNextButton || hasBackButton) {
+        {// bottom button click
             Rect r = bottomButtonRect;
             if (r.left < x && x < r.right && r.top < y && y < r.bottom) {
-                if (hasNextButton) {// next map
+
+                if (gameEnded || GameResources.gameState == GameState.NOP) {
+                    // next map
                     GameResources.newGame();
                     GameResources.redrawFullMap();
-                    hasPlayButton = true;
+                    hasTopButton = true;
+                    battleResult = false;
                     pause();
                     repaint();
                     GameResources.soundButton.start();
+                    return false;
 
-                } else if (hasBackButton) {
+                } else {
                     // back
                     pause();
                     GameResources.soundFail.start();
                     ((MainActivity) getContext()).setOpponentsView();
+                    return false;
                 }
-                return false;
             }
         }
 
-        if (hasPlayButton || hasNextTurnButton) {
+        if (hasTopButton) {
+            if (gameEnded) {
+                // back
+                pause();
+                GameResources.soundFail.start();
+                ((MainActivity) getContext()).setOpponentsView();
+                return false;
+            }
             Rect r = topButtonRect;
             if (r.left < x && x < r.right && r.top < y && y < r.bottom) {
-                if (hasPlayButton) {
+                if (GameResources.gameState == GameState.NOP) {
                     // start the game
                     GameResources.soundButton.start();
-                    hasNextButton = false;
-                    hasNextTurnButton = false;
-                    hasPlayButton = false;
-                    hasBackButton = true;
                     GameResources.start_player();
                     resume();
                     return false;
 
-                } else if (hasNextTurnButton) {
+                } else {
                     // next turn
                     GameResources.soundButton.start();
-                    hasNextTurnButton = false;
-                    hasBackButton = true;
                     repaint();
                     GameResources.gameState = GameState.HUMAN_TURN_END;
                     resume();
                     return false;
                 }
             }
-        }
 
-        if (hasNextTurnButton) {
             // select areas to battle
             if (GameResources.gameState == GameState.HUMAN_WAIT) {
                 int areaIx = GameResources.clickToArea(x - boardLeft, y - boardTop);
@@ -323,7 +322,6 @@ public class DiceWarView extends SurfaceView implements Runnable {
 
                     case HUMAN_TURN:
                         GameResources.lastClickedArea = 0;
-                        hasNextTurnButton = true;
                         repaint();
                         GameResources.gameState = GameState.HUMAN_WAIT;
                         continue;
@@ -401,19 +399,11 @@ public class DiceWarView extends SurfaceView implements Runnable {
                         continue;
 
                     case WIN:
-                        hasNextButton = true;
-                        hasPlayButton = false;
-                        hasNextTurnButton = false;
-                        hasBackButton = false;
                         repaint();
                         GameResources.soundSuccess.start();
                         break;
 
                     case GAME_OVER:
-                        hasNextButton = true;
-                        hasPlayButton = false;
-                        hasNextTurnButton = false;
-                        hasBackButton = false;
                         repaint();
                         GameResources.soundFail.start();
                         break;

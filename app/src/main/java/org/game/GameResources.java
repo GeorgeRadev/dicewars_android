@@ -45,6 +45,8 @@ public class GameResources {
     public static int borderColor;
     public static int lightGray;
     public static int textBlack;
+    public static int wonColor;
+    public static int lostColor;
     public static Paint backgroundPaint;
     public static Bitmap backgroundImage;
     public static Paint textBigCenteredPaint;
@@ -134,6 +136,8 @@ public class GameResources {
         white = Color.rgb(0xff, 0xff, 0xff);
         lightGray = Color.rgb(0xe3, 0xea, 0xf0);
         textBlack = Color.rgb(0x30, 0x30, 0x30);
+        wonColor = Color.rgb(0x00, 0x99, 0x00);
+        lostColor = Color.rgb(0xcc, 0x00, 0x00);
 
         borderSelectedColor = Color.rgb(0xff, 0x00, 0x00);
         borderColor = Color.rgb(0x22, 0x22, 0x44);
